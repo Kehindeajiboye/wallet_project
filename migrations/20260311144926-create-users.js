@@ -22,6 +22,10 @@ module.exports = {
       email: {
         type: Sequelize.STRING
       },
+      phone: {
+        type: Sequelize.STRING,
+        unique: true
+      },
       hash_password: {
         type: Sequelize.STRING
       },
