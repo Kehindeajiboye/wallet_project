@@ -20,7 +20,8 @@ module.exports = {
         type: Sequelize.STRING
       },
       email: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        unique: true
       },
       phone: {
         type: Sequelize.STRING,
@@ -31,6 +32,10 @@ module.exports = {
       },
       salt_password: {
         type: Sequelize.STRING
+      },
+      status: {
+        type: Sequelize.STRING,
+        defaultValue: "disable"
       },
       createdAt: {
         allowNull: false,

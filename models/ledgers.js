@@ -17,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
     ledgerRef: DataTypes.STRING,
     walletId: DataTypes.STRING,
     amount: DataTypes.INTEGER,
-    type: DataTypes.ENUM,
+    type: DataTypes.ENUM("debit", "credit"),
     balanceAfter: DataTypes.INTEGER
   }, {
     sequelize,
