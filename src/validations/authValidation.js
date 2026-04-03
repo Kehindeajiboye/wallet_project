@@ -33,6 +33,8 @@ const signupSchema = Joi.object({
   }),
 });
 
+const completeSignupSchema = Joi.object({})
+
 const loginSchema = Joi.object({
   email: Joi.string().email({ minDomainSegments: 2, tlds: { allow: ["com", "net"] } }).required().messages({
       "string.empty": "email cannot be empty",
@@ -51,5 +53,6 @@ const loginSchema = Joi.object({
 
 module.exports = {
   signupSchema,
+  completeSignupSchema,
   loginSchema
 }

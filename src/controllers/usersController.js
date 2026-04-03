@@ -3,7 +3,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { v4: uuidv4 } = require("uuid");
 const { Users, Wallets, Otps, Tansactions, Ledgers } = require("../../models");
-const { signupSchema } = require("../validations/authValidation");
+const { signupSchema, loginSchema } = require("../validations/authValidation");
 const { generateOTP, expiredOTP } = require("../utils/utils");
 const { sendMailToUser } = require("../services/emailServices");
 
@@ -200,10 +200,67 @@ const resendOTP = async (req, res) => {
   }
 };
 
+const loginUser = async (req, res) => {
+  const { error, value } = loginSchema.validate(req.body);
+  if (error) {
+    res.status(400).json({
+      status: false,
+      message: error.details[0].message,
+    });
+  }
 
+  try {
+    const user = await Users.findOne({
+      where: { [Op.or]: [{ email: value.email }, { phone: value.email }] },
+    });
+
+    if (user.status !== "active") {
+      return res.status(403).json({
+        status: false,
+        message: "Account not activated. Please verify your email.",
+      });
+    }
+
+    if (!user) {
+      return res.status(404).json({
+        status: false,
+        message: "Invalid login credentials",
+      });
+    }
+
+    const isPasswordValid = bcrypt.compareSync(
+      value.password,
+      user.hash_password,
+    );
+    if (!isPasswordValid) {
+      return res.status(404).json({
+        status: false,
+        message: "Invalid login credentials",
+      });
+    }
+
+    const token = jwt.sign(
+      { userId: user.userId, email: user.email },
+      process.env.JWT_SECRET_KEY,
+      { expiresIn: "1h" },
+    );
+
+    res.status(200).json({
+      status: true,
+      message: "Login successful",
+      token,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: false,
+      message: error.message || "Sever error",
+    });
+  }
+};
 
 module.exports = {
   createNewUser,
   verifyUserOTP,
   resendOTP,
+  loginUser
 };
