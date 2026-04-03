@@ -16,6 +16,7 @@ module.exports = {
       accountNumber: {
         type: Sequelize.STRING,
         unique: true,
+        allowNull: false
       },
       userId: {
         type: Sequelize.STRING,
