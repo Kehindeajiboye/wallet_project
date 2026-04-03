@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 const { v4: uuidv4 } = require("uuid");
 const { Users, Wallets, Otps, Tansactions, Ledgers } = require("../../models");
 const { signupSchema, loginSchema } = require("../validations/authValidation");
-const { generateOTP, expiredOTP } = require("../utils/utils");
+const { generateOTP, expiredOTP, generateUniqueAccountNumber } = require("../utils/utils");
 const { sendMailToUser } = require("../services/emailServices");
 
 const createNewUser = async (req, res) => {
@@ -46,6 +46,7 @@ const createNewUser = async (req, res) => {
 
     await Wallets.create({
       walletId: uuidv4(),
+      accountNumber: generateUniqueAccountNumber(),
       userId: userId,
       balance: 0,
     });
