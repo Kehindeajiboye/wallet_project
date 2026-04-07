@@ -1,5 +1,5 @@
 const { v4: uuidv4 } = require("uuid");
-const { Users, Wallets, Otps, Tansactions, Ledgers } = require("../../models");
+const { Users, Wallets, Otps, Transactions, Ledgers } = require("../../models");
 
 // const getUserWalletDetails = async (req, res) => {
 //     const userId = req.user.userId;
@@ -45,6 +45,48 @@ const getUserAcctDetails = async (req, res) => {
     });
   }
 };
+
+// const getUserTransactionHistory = async (req, res) => {
+//   const userId = req.user.userId;
+//   try {    const transactions = await Tansactions.findAll({
+//       where: { userId },
+//         include: [
+//             {
+//                 model: Ledgers,
+//                 attributes: ["transactionType", "amount", "transactionDate"]
+//             }
+//         ]
+//     });
+//     res.status(200).json({
+//       status: true,
+//       data: transactions
+//     });
+//   } catch (error) {
+//     res.status(500).json({
+//       status: false,
+//       message: error.message || "Server error"
+//     });
+//   }
+// };
+
+const transferFunds = async (req, res) => {
+    const senderId = req.user.userId;
+    const { recipientAccountNumber, amount } = req.body;
+    try {
+        const recipientWallet = await Wallets.findOne({ where: { accountNumber: recipientAccountNumber } });
+        if (!recipientWallet) {
+            res.status(404).json({
+                status: false,
+                message: "Recipient wallet not found"
+            });
+        }
+    } catch (error) {
+       res.status(500).json({
+        status: false,
+        message: error.message || "Server error"
+       })  
+    }
+}
 
 module.exports = {
   getUserAcctDetails,
