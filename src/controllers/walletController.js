@@ -83,8 +83,10 @@ const transferFunds = async (req, res) => {
         message: "Recipient wallet not found",
       });
     }
-    await debitSenderWallet(senderId, recipientAccountNumber, amount);
+    await checkSenderBal(senderId, amount);
+    const transaction = await debitSenderWallet(senderId, recipientAccountNumber, amount);
     await creditReceiverWallet(senderId, recipientAccountNumber, amount);
+    await transaction.update({ status: "completed" });
 
     res.status(200).json({
       status: true,

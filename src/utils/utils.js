@@ -34,12 +34,13 @@ const debitSenderWallet = async (senderId, recipientAccountNumber, amount) => {
     where: { accountNumber: recipientAccountNumber },
   });
   await Wallets.decrement({ balance: amount }, { where: { userId: senderId } });
-  await Transactions.create({
+  const transaction = await Transactions.create({
     transactionRef: uuidv4(),
     senderWalletId: senderDetails.walletId,
     receiverWalletId: receiverDetails.walletId,
     amount: amount
   });
+  return transaction;
 };
 
 const creditReceiverWallet = async (senderId, recipientAccountNumber, amount) => {
