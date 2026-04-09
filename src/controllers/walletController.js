@@ -72,21 +72,57 @@ const getUserAcctDetails = async (req, res) => {
 
 const transferFunds = async (req, res) => {
   const senderId = req.user.userId;
-  const { recipientAccountNumber, amount } = req.body;
+  const { error, value } = transferSchema.validate(req.body);
+
+  if (error) {
+    return res.status(400).json({
+      status: false,
+      message: error.details[0].message,
+    });
+  }
+
+  const { recipientAccountNumber, amount } = value;
+
   try {
     const recipientWallet = await Wallets.findOne({
       where: { accountNumber: recipientAccountNumber },
     });
+
+    const receiverDetails = await Users.findOne({
+      where: { userId: recipientWallet.userId }
+    })
+
+    const senderDetails = await Users.findOne({ where: { userId: senderId } });
+
     if (!recipientWallet) {
       res.status(404).json({
         status: false,
         message: "Recipient wallet not found",
       });
     }
+
     await checkSenderBal(senderId, amount);
-    const transaction = await debitSenderWallet(senderId, recipientAccountNumber, amount);
+
+    const transaction = await debitSenderWallet(
+      senderId,
+      recipientAccountNumber,
+      amount,
+    );
+
     await creditReceiverWallet(senderId, recipientAccountNumber, amount);
     await transaction.update({ status: "completed" });
+
+    const payloadReceiver = {
+      amount: amount,
+      status: "credited"
+    };
+
+    await sendMailToUser(
+      receiverDetails.email,
+      "Wallet Credited",
+      payloadReceiver,
+      "TransferTemplate",
+    )
 
     res.status(200).json({
       status: true,
@@ -102,5 +138,5 @@ const transferFunds = async (req, res) => {
 
 module.exports = {
   getUserAcctDetails,
-    transferFunds
+  transferFunds,
 };

@@ -33,7 +33,14 @@ const signupSchema = Joi.object({
   }),
 });
 
-const completeSignupSchema = Joi.object({})
+const completeSignupSchema = Joi.object({
+  otp: Joi.string().length(6).required().messages({
+    "string.base": "otp should be a type of text",
+    "string.empty": "otp should not be empty",
+    "string.length": "otp should be 6 characters long",
+    "any.required": "otp is a required field",
+  }),
+})
 
 const loginSchema = Joi.object({
   email: Joi.string().email({ minDomainSegments: 2, tlds: { allow: ["com", "net"] } }).required().messages({
