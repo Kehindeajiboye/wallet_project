@@ -89,8 +89,8 @@ const transferFunds = async (req, res) => {
     });
 
     const receiverDetails = await Users.findOne({
-      where: { userId: recipientWallet.userId }
-    })
+      where: { userId: recipientWallet.userId },
+    });
 
     const senderDetails = await Users.findOne({ where: { userId: senderId } });
 
@@ -114,7 +114,14 @@ const transferFunds = async (req, res) => {
 
     const payloadReceiver = {
       amount: amount,
-      status: "credited"
+      status: "credited",
+      type: "Credit"
+    };
+
+    const payloadSender = {
+      amount: amount,
+      status: "debited",
+      type: "Debit"
     };
 
     await sendMailToUser(
@@ -122,7 +129,14 @@ const transferFunds = async (req, res) => {
       "Wallet Credited",
       payloadReceiver,
       "TransferTemplate",
-    )
+    );
+
+    await sendMailToUser(
+      senderDetails.email,
+      "Wallet Debited",
+      payloadSender,
+      "TransferTemplate",
+    );
 
     res.status(200).json({
       status: true,
