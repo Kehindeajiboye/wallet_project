@@ -9,10 +9,13 @@ const { sendMailToUser } = require("../services/emailServices");
 
 const createNewUser = async (req, res) => {
   const { error, value } = signupSchema.validate(req.body);
+  console.log("value", value);
   console.log("schema error", error);
+//   console.log("PHONE:", value.phone);
+// console.log("EMAIL:", value.email);
 
   if (error) {
-    res.status(400).json({
+    return res.status(400).json({
       status: false,
       message: error.details[0].message,
     });
@@ -24,7 +27,7 @@ const createNewUser = async (req, res) => {
     });
 
     if (checkIfUserExists.length > 0) {
-      res.status(409).json({
+      return res.status(409).json({
         status: false,
         message: "User already exists",
       });
@@ -33,6 +36,7 @@ const createNewUser = async (req, res) => {
     const salt = bcrypt.genSaltSync(10);
     const hash = bcrypt.hashSync(value.password, salt);
     const userId = uuidv4();
+
 
     await Users.create({
       userId: userId,
@@ -72,12 +76,12 @@ const createNewUser = async (req, res) => {
       "WelcomeTemplate",
     );
 
-    res.status(201).json({
+     return res.status(201).json({
       status: true,
       message: "Check email for otp verification code",
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       status: false,
       message: error.message || "Server error",
     });
@@ -109,6 +113,8 @@ const verifyUserOTP = async (req, res) => {
       });
     }
 
+    // console.log("validateOTP", validateOTP.otpCode, otp_code);
+
     if (validateOTP.otpCode !== otp_code) {
       return res.status(400).json({
         status: false,
@@ -138,7 +144,7 @@ const verifyUserOTP = async (req, res) => {
       },
     );
 
-    res.status(200).json({
+    return res.status(200).json({
       status: true,
       message: "OTP verified successfully",
     });
@@ -178,23 +184,23 @@ const resendOTP = async (req, res) => {
     });
 
     const payload = {
-      fullname: `${value.firstName} ${value.lastName}`,
+      fullname: `${user.firstName} ${user.lastName}`,
       otp_code: otp_code,
     };
 
     await sendMailToUser(
-      value.email,
+      user.email,
       "Resend OTP Code",
       payload,
       "ResendTemplate",
     );
 
-    res.status(200).json({
+    return res.status(200).json({
       status: true,
       message: "Check email for new otp verification code",
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       status: false,
       message: error.message || "Server error",
     });
@@ -204,7 +210,7 @@ const resendOTP = async (req, res) => {
 const loginUser = async (req, res) => {
   const { error, value } = loginSchema.validate(req.body);
   if (error) {
-    res.status(400).json({
+    return res.status(400).json({
       status: false,
       message: error.details[0].message,
     });
@@ -245,14 +251,14 @@ const loginUser = async (req, res) => {
       process.env.JWT_SECRET_KEY,
       { expiresIn: "1h" },
     );
+    res.setHeader('Authorization', token)
 
-    res.status(200).json({
+    return res.status(200).json({
       status: true,
-      message: "Login successful",
-      token,
+      message: "Login successful"
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       status: false,
       message: error.message || "Sever error",
     });

@@ -17,7 +17,7 @@ const generateUniqueAccountNumber = () => {
 };
 
 const checkSenderBal = async (senderId, amount) => {
-  const walBalance = await Wallets.findOne({ where: { senderId } });
+  const walBalance = await Wallets.findOne({ where: { userId: senderId } });
   console.log("wallet", walBalance);
   if (!walBalance) {
     throw new Error("Wallet not found");
@@ -28,42 +28,67 @@ const checkSenderBal = async (senderId, amount) => {
   }
 };
 
-const debitSenderWallet = async (senderId, recipientAccountNumber, amount) => {
+const debitSenderWallet = async (
+  senderId,
+  recipientAccountNumber,
+  amount,
+  transaction,
+) => {
   const senderDetails = await Wallets.findOne({ where: { userId: senderId } });
   const receiverDetails = await Wallets.findOne({
     where: { accountNumber: recipientAccountNumber },
   });
-  await Wallets.decrement({ balance: amount }, { where: { userId: senderId } });
-  const transaction = await Transactions.create({
-    transactionRef: uuidv4(),
-    senderWalletId: senderDetails.walletId,
-    receiverWalletId: receiverDetails.walletId,
-    amount: amount
-  });
-  return transaction;
+  await Wallets.decrement(
+    { balance: amount },
+    { where: { userId: senderId }, transaction },
+  );
+  const transactions = await Transactions.create(
+    {
+      transactionRef: uuidv4(),
+      senderWalletId: senderDetails.walletId,
+      receiverWalletId: receiverDetails.walletId,
+      amount: amount,
+    },
+    { transaction },
+  );
+  return transactions;
 };
 
-const creditReceiverWallet = async (senderId, recipientAccountNumber, amount) => {
-  await Wallets.increment({ balance: amount }, { where: { accountNumber: recipientAccountNumber } });
+const creditReceiverWallet = async (
+  senderId,
+  recipientAccountNumber,
+  amount,
+  transaction,
+) => {
+  await Wallets.increment(
+    { balance: amount },
+    { where: { accountNumber: recipientAccountNumber }, transaction },
+  );
   const receiverDetails = await Wallets.findOne({
     where: { accountNumber: recipientAccountNumber },
   });
   const senderDetails = await Wallets.findOne({ where: { userId: senderId } });
-  await Ledgers.create({
-    ledgerRef: uuidv4(),
-    walletId: receiverDetails.walletId,
-    amount: amount,
-    type: "credit",
-    balanceAfter: receiverDetails.balance
-  });
+  await Ledgers.create(
+    {
+      ledgerRef: uuidv4(),
+      walletId: receiverDetails.walletId,
+      amount: amount,
+      type: "credit",
+      balanceAfter: receiverDetails.balance,
+    },
+    { transaction },
+  );
 
-  await Ledgers.create({
-    ledgerRef: uuidv4(),
-    walletId: senderDetails.walletId,
-    amount: amount,
-    type: "debit",
-    balanceAfter: senderDetails.balance
-  })
+  await Ledgers.create(
+    {
+      ledgerRef: uuidv4(),
+      walletId: senderDetails.walletId,
+      amount: amount,
+      type: "debit",
+      balanceAfter: senderDetails.balance,
+    },
+    { transaction },
+  );
 };
 
 module.exports = {
@@ -72,5 +97,5 @@ module.exports = {
   generateUniqueAccountNumber,
   checkSenderBal,
   debitSenderWallet,
-  creditReceiverWallet
+  creditReceiverWallet,
 };

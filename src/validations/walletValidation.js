@@ -15,7 +15,17 @@ const transferSchema = Joi.object({
     })
 });
 
+const fundWalletSchema = Joi.object({
+    amount: Joi.number().positive().required().messages({
+        "number.base": "amount should be a type of number",
+        "number.empty": "amount should not be empty",
+        "number.positive": "amount should be a positive number",
+        "any.required": "amount is a required field"
+    })
+});
+
 
 module.exports = {
-    transferSchema
+    transferSchema,
+    fundWalletSchema
 }
