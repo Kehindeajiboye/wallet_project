@@ -1,5 +1,6 @@
 const { v4: uuidv4 } = require("uuid");
 const { Users, Wallets, Otps, Transactions, Ledgers } = require("../../models");
+const { sequelize } = require("../../models");
 const {
   debitSenderWallet,
   creditReceiverWallet,
