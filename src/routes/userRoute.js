@@ -3,6 +3,10 @@ const { createNewUser, resendOTP, verifyUserOTP, loginUser } = require("../contr
 const router = express.Router();
 
 
+
+
+
+
 router.post("/signup", createNewUser)
 router.post("/verify-otp/:email", verifyUserOTP)
 router.post("/resend-otp/:email", resendOTP)
